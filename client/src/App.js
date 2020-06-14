@@ -45,12 +45,18 @@ function App() {
   }
 
   useEffect(() => {
-    setTechItems(
-      JSON.parse(localStorage.getItem('techItems'))
-    )
-    setPage(
-     JSON.parse(localStorage.getItem('page')) + 1
-    )
+    const techItems = JSON.parse(localStorage.getItem('techItems'));
+    const page = JSON.parse(localStorage.getItem('page'))
+    if (techItems) {
+      setTechItems(
+        techItems 
+      )
+    }
+    if (page) {
+      setPage(
+       page
+      )
+    }
   }, [])
   return (
     <div className="App">
