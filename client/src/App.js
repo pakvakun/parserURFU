@@ -2,41 +2,19 @@ import React, { useState, useEffect } from 'react';
 import './App.scss';
 import Axios from 'axios';
 
-// var page = 1
-
 function App() {
   const [techItems, setTechItems] = useState([])
   const [page, setPage] = useState(1)
-  const [timerId, setTimerId] = useState(null)
+  const [loading, setLoading] = useState(false)
 
- 
-  const callAPI = () => {
-    console.log(page);
-    
-    Axios({
-      method: 'GET',
-      url: '/',
-      params: {
-        page
-      }
+  const callAPI = async () => {
+    setLoading(true)
+    const res = await Axios.get('/', {
+      page
     })
-    .then( res => {
-      // page = page + 1
-      setPage(page => page + 1)
-      setTechItems(techItems.concat(res.data))
-    })
-    .catch(err => console.log({err}))
-  }
-
-  const callLoop = async () => {
-    let timer = setInterval(() => {
-      callAPI()
-    }, 3000);
-    setTimerId(timer)
-  }
-
-  const stopTimer = () => {
-    clearInterval(timerId)
+    setPage(page => page + 1)
+    setTechItems(techItems.concat(res.data))
+    setLoading(false)
   }
 
   const saveAllData = () => {
@@ -61,15 +39,17 @@ function App() {
   return (
     <div className="App">
       <nav className='col'>
-        <button className='button' onClick={() => callAPI() }>get</button>
-        <button className='button' disabled onClick={() => callLoop() }>loop</button>
-        <button className='button' disabled onClick={() => stopTimer() }>stop</button>
+        <button className='button' onClick={() => callAPI()}>get</button>
         <button className='button' onClick={() => saveAllData() }>save</button>
       </nav>
       <main className='main'>
         <div className='main__container'>
           {
-            techItems.length 
+            loading &&
+            <span>Loading...</span>
+          }
+          {
+            techItems.length || loading
             ? techItems.map((item, key) => {
               if (item) {
                 return <div className='main__container_item' key={key}>

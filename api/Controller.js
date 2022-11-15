@@ -1,9 +1,34 @@
 var request = require('request-promise');
 var axios = require('axios');
 
-// var needle = require('needle');
 var config = require('./Utils/config')
 var linksArray = []
+
+const getLinksArr = async () => {
+    let links = request(config.url)
+    if (!linksArray.length) {
+        linksArray = links
+    }
+    return linksArray
+}
+
+const xml2Arr = xml => {
+    let newXml = xml.match(/(<loc>.*<\/loc>)/gi)
+    return newXml.map(item => item.replace(/(<loc>)|(<\/loc>)/gi, ''))
+}
+
+const findIterstingLinks = (urlArr) => {
+    const urlFiltered = urlArr.filter(item => item.split('/').length >= 7)
+    return urlFiltered
+}
+
+const findInfo = async (urlFiltered, page) => {
+    const reccive_page = page ? +page : 0
+    const newUrls = urlFiltered.slice(reccive_page, reccive_page + 10)
+    return Promise.allSettled(newUrls.map((item) => {
+        return axios.get(item)
+    }))
+}
 
 const getRemoteData = async (res, page) => {
     let temp = await getLinksArr()
@@ -21,7 +46,6 @@ const getRemoteData = async (res, page) => {
             header = item?.match(/(<h1.*<\/h1>)/gi)[0].replace(/(<h1>)|(<\/h1>)/gi, '')
             techFeatures = item?.match(/(<!-- tech-features -->.*<!-- tech-features end -->)/)[0].replace(/undefined/gi, '').split(/<div class="feature">/)
             techFeatures = techFeatures?.map(feature => {
-                // return feature.match(/(<div .*>.*<\/div>)/gi)
                 feature = feature.split(/<div/).map(item => {
                     item = item.replace(/(.+?>)/, '')
                     item = item.replace(/(<\/div>)/gi, '')
@@ -59,32 +83,6 @@ const getRemoteData = async (res, page) => {
     if (infoPages) {
         res.send(infoPages)
     }
-}
-
-const getLinksArr = async () => {
-    let links = request(config.url)
-    if(!linksArray.length) {
-        linksArray = links
-    }
-    return linksArray
-}
-
-const xml2Arr = xml => {
-    let newXml = xml.match(/(<loc>.*<\/loc>)/gi)
-    return newXml.map(item => item.replace(/(<loc>)|(<\/loc>)/gi, ''))
-}
-
-const findIterstingLinks = (urlArr) => {
-    const urlFiltered = urlArr.filter(item => item.split('/').length >= 7)
-    return urlFiltered 
-}
-
-const findInfo = async (urlFiltered, page) => {
-    const reccive_page =  page ? +page : 0
-    const newUrls = urlFiltered.slice(reccive_page, reccive_page + 10)
-    return Promise.allSettled(newUrls.map((item) => {
-        return axios.get(item)
-    }))
 }
 
 module.exports = {
